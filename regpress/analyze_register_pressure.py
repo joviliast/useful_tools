@@ -38,7 +38,6 @@ def get_separate_regs(reg):
         try:
             res.append(f"{reg_type}{int(reg_value)}")
         except ValueError:
-            print(reg)
             raise ValueError(f"Invalid register: {reg}")
 
     return res
@@ -112,6 +111,11 @@ def main(filepath):
 
     plt.figure(figsize=(14, 5))
     plt.plot(range(len(live_counts)), live_counts, label='Live vector registers', linewidth=1)
+    is_first = True
+    for idx, line in enumerate(asm_lines):
+        if len(line.split()) > 0 and 'mfma' in line.split()[0] or 'wmma' in line.split()[0]:
+            plt.scatter(idx, live_counts[idx], color='red', label="Matrix core" if is_first else "", zorder=4)
+            is_first = False
     for idx, barrier in enumerate(barrier_indices):
         plt.axvline(x=barrier, color='red', linestyle='--', linewidth=0.7,
                     label='Basic block barrier' if idx == 0 else "")
