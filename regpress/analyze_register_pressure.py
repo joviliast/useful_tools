@@ -67,6 +67,9 @@ def parse_def_use(asm_lines):
             for use_reg in get_separate_regs(use_regs):
                 if (len(live_ranges_dict[use_reg]) > 0):
                     live_ranges_dict[use_reg][-1] = (live_ranges_dict[use_reg][-1][0], idx)
+                else:
+                    live_ranges_dict[use_reg].append((0, idx))
+
     live_ranges = [(key, a, b) for key, pairs in live_ranges_dict.items() for (a, b) in pairs]
     return live_ranges
 
