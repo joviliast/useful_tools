@@ -2,7 +2,7 @@ import re
 import matplotlib.pyplot as plt
 from collections import defaultdict
 
-vreg_pattern = re.compile(r'\b([va])(\d{1,3}|\[\d+:\d+\])\b', re.IGNORECASE)
+vreg_pattern = re.compile(r'(v|a)(\d{1,3}|\[\d{1,3}:\d{1,3}\])', re.IGNORECASE)
 cf_barrier_pattern = re.compile(r'\b(s_branch|s_cbranch_[a-z_]+|s_endpgm|s_barrier)\b', re.IGNORECASE)
 
 
@@ -22,6 +22,8 @@ def insert_barriers(asm_lines):
 def get_separate_regs(reg):
     res = []
     reg = reg.split(' ')[0]  # get rid of something like 'offset: 16' for now
+    if reg.startswith("-"):
+        reg = reg[1:]
     reg_type = reg[0].lower()
     reg_value = reg[1:]
 
@@ -52,9 +54,9 @@ def parse_def_use(asm_lines):
 
         # Extract operands after mnemonic
         operands = re.sub(r';.*', '', ' '.join(tokens[1:])).strip().split(',')
-
         # Clean and normalize register names
-        regs = [op.strip().lower() for op in operands if vreg_pattern.match(op.strip())]
+        regs = [op.strip().lower() for op in operands if vreg_pattern.match(op.strip().lstrip("-"))]
+
         if not regs:
             continue
 
@@ -107,7 +109,6 @@ def main(filepath):
 
     plt.figure(figsize=(14, 5))
     plt.plot(range(len(live_counts)), live_counts, label='Live vector registers', linewidth=1)
-
     for idx, barrier in enumerate(barrier_indices):
         plt.axvline(x=barrier, color='red', linestyle='--', linewidth=0.7,
                     label='Basic block barrier' if idx == 0 else "")
